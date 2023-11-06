@@ -69,3 +69,29 @@ function startAudio() {
     button.html('PAUSE'); // Update the button label to 'PAUSE'
   }
 }
+
+function draw() {
+  background(31, 19, 1); // Set the background color
+  let spectrum = fft.analyze(); // Analyze the frequency spectrum of the audio
+
+  // Loop through each cube and set its height based on the audio spectrum
+  for (let i = 0; i < num; i++) {
+    for (let j = 0; j < num; j++) {
+      let d = dist(i, j, num / 2, num / 2); // Calculate distance from the center
+      let index = floor(map(d, 0, dist(0, 0, num / 2, num / 2), 0, spectrum.length - 1)); // Map the distance to the spectrum index
+      let amp = spectrum[index]; // Get the amplitude from the spectrum
+      let sz = map(amp, 0, 256, size, size * 4); // Map the amplitude to cube height
+
+      let x = map(i, 0, num - 1, -width / 2, width / 2); // Map the cube position on the x-axis
+      let y = map(j, 0, num - 1, -height / 2, height / 2); // Map the cube position on the y-axis
+
+      let c = pg.get(i, j); // Get the color from the image at the corresponding pixel
+
+      push(); // Start a new drawing state
+      translate(x, y, -sz / 2); // Translate to the cube position
+      fill(c); // Set the fill color to the image pixel color
+      box(size, size, sz); // Draw the cube with the calculated height
+      pop(); // Restore the original drawing state
+    }
+  }
+}
