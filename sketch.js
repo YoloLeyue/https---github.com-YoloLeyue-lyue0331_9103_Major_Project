@@ -1,74 +1,71 @@
-let num = 32; // 方块数量，确保是一个平方数以创建一个平方阵列
-let size; // 每个方块的大小
-let step; // 方块之间的步进值
-let vmin; // 画布的最小维度
-let theScreamImage; // 用于加载图片的变量
-let sampleSound; // 用于加载声音的变量
-let pg; // 图形缓冲区
-
-let button; // 播放按钮
-let fft; // FFT分析对象
-let song; // 歌曲对象
+let num = 26; // Reduce the number of cubes
+let size; // Size of each cube
+let vmin; // Smallest dimension of the canvas
+let theScreamImage; // Variable for loading the image
+let sampleSound; // Variable for loading the sound
+let pg; // Graphics buffer
+let button; // Play button
+let fft; // FFT analysis object
+let song; // Song object
 
 function preload() {
-  theScreamImage = loadImage('assets/Edvard_Munch_The_Scream.jpg');
-  sampleSound = loadSound('assets/sample.mp3');
+  theScreamImage = loadImage('assets/Edvard_Munch_The_Scream.jpg'); // Preload the image
+  sampleSound = loadSound('assets/scream.mp3'); // Preload the sound
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
-  fft = new p5.FFT(0.8, 256); // 使用256个频段
-  song = sampleSound;
-  song.connect(fft);
+  fft = new p5.FFT(0.8, 256); // Use 256 frequency bands
+  song = sampleSound; // Assign the preloaded sound to the song variable
+  song.connect(fft); // Connect the song to the FFT
 
-  button = createButton('play');
-  button.mousePressed(startAudio);
+  setupButton();
+  calculateSizes();
+  setupGraphics();
+}
 
-  vmin = min(width, height);
-  size = vmin / num;
-  step = size;
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight); // Adjust canvas size when the window is resized
+  calculateSizes(); // Recalculate sizes for responsive design
+  setupGraphics(); // Resetup graphics according to new sizes
+}
 
-  theScreamImage.resize(num, num);
-  pg = createGraphics(num, num);
-  pg.image(theScreamImage, 0, 0, num, num);
+function setupButton() {
+  button = createButton('-PLAY-'); // Create the play button with label
+  button.mousePressed(startAudio); // Function to call when button is pressed
+  // Set responsive font size based on window width
+  button.style('font-size', `${windowWidth / 20}px`); 
+  button.style('padding', '1% 2%'); // Padding around the button
+  button.style('border', 'none'); // No border for the button
+  button.style('border-radius', '5px'); // Rounded corners for the button
+  button.style('background-color', '#000000'); // Button background color
+  button.style('color', 'white'); // Text color of the button
+  button.style('cursor', 'pointer'); // Cursor to display on hover
+  button.position(windowWidth / 2 - button.width * 5, 10); // Position button at the top center of the screen
+}
+
+function calculateSizes() {
+  vmin = min(width, height); // Compute the minimum of width and height
+  size = vmin / num; // Calculate the size of the cubes based on vmin
+  // Additional calculations for other sizes and positions can be done here
+}
+
+function setupGraphics() {
+  // Adjust and redraw the background graphics according to the new size
+  theScreamImage.resize(num, num); // Resize the image to match the number of cubes
+  pg = createGraphics(num, num); // Setup the graphics buffer
+  pg.image(theScreamImage, 0, 0, num, num); // Draw the image onto the graphics buffer
 }
 
 function startAudio() {
   if (getAudioContext().state !== 'running') {
-    userStartAudio();
+    userStartAudio(); // Start the audio context if not already running
   }
   if (song.isPlaying()) {
-    song.pause();
-    button.html('play');
+    song.pause(); // Pause the song if it is playing
+    button.html('_PLAY_'); // Update the button label to 'PLAY'
   } else {
-    song.loop();
-    button.html('pause');
-  }
-}
-
-function draw() {
-  background(31, 19, 1);
-  let spectrum = fft.analyze(); // 获取频谱数据
-
-  // 根据频谱数据动态调整方块高度
-  for (let i = 0; i < num; i++) {
-    for (let j = 0; j < num; j++) {
-      // 根据距离中心的远近选择频谱中的数据
-      let d = dist(i, j, num / 2, num / 2);
-      let index = floor(map(d, 0, dist(0, 0, num / 2, num / 2), 0, spectrum.length - 1));
-      let amp = spectrum[index]; // 频谱中的振幅值
-      let sz = map(amp, 0, 256, size / 2, size * 2); // 映射振幅到方块的高度
-
-      let x = map(i, 0, num - 1, -width / 2, width / 2);
-      let y = map(j, 0, num - 1, -height / 2, height / 2);
-
-      let c = pg.get(i, j); // 获取对应像素的颜色
-
-      push();
-      translate(x, y, -sz / 2);
-      fill(c);
-      box(size, size, sz);
-      pop();
-    }
+    song.loop(); // Loop the song if it is not playing
+    button.html('PAUSE'); // Update the button label to 'PAUSE'
   }
 }
